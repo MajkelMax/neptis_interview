@@ -15,23 +15,31 @@ public class TcpServer {
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(12345)) {
             System.out.println("Serwer działa na porcie 12345...");
+
             while (true) {
-                try (Socket clientSocket = serverSocket.accept();
-                     PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                     BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
-
-                    // Odczytanie id użytkownika z komunikatu klienta
-                    Long userId = Long.parseLong(in.readLine());
-
-                    // Pobranie pojazdów i ofert ubezpieczeniowych dla danego użytkownika z bazy danych
-                    String result = getDataFromDatabase(userId);
-
-                    // Odesłanie danych do klienta
-                    out.println(result);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Nowe połączenie!");
+                //Obsługa kilku użytkowników na raz
+                Thread clientThread = new Thread(() -> handleClient(clientSocket));
+                clientThread.start();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void handleClient(Socket clientSocket) {
+        try (PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
+
+            // Odczytanie id użytkownika z komunikatu klienta
+            Long userId = Long.parseLong(in.readLine());
+
+            // Pobranie pojazdów i ofert ubezpieczeniowych dla danego użytkownika z bazy danych
+            String result = getDataFromDatabase(userId);
+
+            // Odesłanie danych do klienta
+            out.println(result);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -48,7 +56,7 @@ public class TcpServer {
 
             try (Connection connection = DriverManager.getConnection(url, username, password)) {
                 // Zapytanie SQL
-                String query =  "SELECT vehicles.*, insurance_offers.*\n" +
+                String query = "SELECT vehicles.*, insurance_offers.*\n" +
                         "FROM vehicles\n" +
                         "LEFT JOIN insurance_offers ON vehicles.id = insurance_offers.vehicle_id\n" +
                         "WHERE vehicles.login = (SELECT login FROM users WHERE id = ?);";
