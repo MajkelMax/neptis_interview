@@ -1,12 +1,15 @@
 package org.example.client;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
+import java.util.Scanner;
 
 public class Client {
 
@@ -19,8 +22,16 @@ public class Client {
 
             // Wprowadzenie ID użytkownika
             System.out.print("Podaj ID użytkownika: ");
-            String input = scanner.next();
-            out.println(input);
+            String id = scanner.next();
+            out.println(id);
+            // Wprowadzenie Loginu użytkownika
+            System.out.print("Podaj login: ");
+            String login = scanner.next();
+            out.println(login);
+            // Wprowadzenie hasła użytkownika
+            System.out.print("Podaj hasło: ");
+            String password = scanner.next();
+            out.println(password);
 
             // Odczytanie danych z serwera
             String response = in.readLine();
@@ -37,8 +48,13 @@ public class Client {
         String[] data = response.split("\\$");
         Map<Integer, List<String>> hashMap = new HashMap<>();
 
-        if (data.length == 1){
-            System.out.println("Brak danych użytkownika !!!");
+        if (data.length == 1) {
+            if (data[0].equals("false")) {
+                System.out.println("Podano błędny login lub hasło !!!");
+            } else {
+                System.out.println("Brak danych użytkownika !!!");
+            }
+            return; // Zakończ funkcję, jeśli brak danych
         }
 
         int multi = 0;
